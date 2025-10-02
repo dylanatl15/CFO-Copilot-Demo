@@ -39,7 +39,7 @@ def _convert_to_usd(df: pd.DataFrame, fx_df: pd.DataFrame) -> pd.DataFrame:
         
     merged_df = df.merge(fx_df, on=['month_period', 'currency'], how='left')
     # Assume 1.0 rate for USD or if rate is not found
-    merged_df['rate_to_usd'].fillna(1.0, inplace=True)
+    merged_df['rate_to_usd'] = merged_df['rate_to_usd'].fillna(1.0)
     merged_df['amount_usd'] = merged_df['amount'] / merged_df['rate_to_usd']
     return merged_df
 
@@ -87,7 +87,7 @@ def get_financial_metric_trend(actuals_df: pd.DataFrame, fx_df: pd.DataFrame, me
         'Revenue': sum_by_category(x, 'revenue'),
         'COGS': sum_by_category(x, 'cogs'),
         'Opex': sum_by_prefix(x, 'opex:')
-    })).reset_index()
+    }), include_groups=False).reset_index()
 
     if metric == 'Gross Margin':
         # Safely calculate gross margin to avoid division by zero
@@ -152,7 +152,7 @@ def get_cash_runway(actuals_df: pd.DataFrame, cash_df: pd.DataFrame, fx_df: pd.D
     monthly_summary = recent_actuals_usd.groupby('month_period').apply(lambda x: pd.Series({
         'Income': sum_by_category(x, 'revenue'),
         'Expenses': sum_by_category(x, 'cogs') + sum_by_prefix(x, 'opex:')
-    })).reset_index()
+    }), include_groups=False).reset_index()
 
     monthly_summary['net_flow'] = monthly_summary['Income'] - monthly_summary['Expenses']
     
